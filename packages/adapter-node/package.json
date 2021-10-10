@@ -8,18 +8,9 @@
 	},
 	"homepage": "https://kit.svelte.dev",
 	"type": "module",
-	"exports": {
-		".": {
-			"import": "./index.js"
-		},
-		"./package.json": "./package.json"
-	},
 	"main": "index.js",
 	"types": "index.d.ts",
-	"files": [
-		"files",
-		"index.d.ts"
-	],
+	"adapter": "files/index.js",
 	"scripts": {
 		"dev": "rollup -cw",
 		"build": "rollup -c",

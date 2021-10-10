@@ -1,6 +1,6 @@
-// @ts-ignore
-import { path, host, port } from './env.js';
-import { assetsMiddleware, kitMiddleware, prerenderedMiddleware } from './middlewares.js';
+import './shims';
+import { path, host, port } from './env';
+import { assetsMiddleware, kitMiddleware, prerenderedMiddleware } from './middlewares';
 import compression from 'compression';
 import polka from 'polka';
 

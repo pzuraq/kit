@@ -1,13 +1,11 @@
-import esbuild from 'esbuild';
 import {
 	createReadStream,
 	createWriteStream,
 	existsSync,
-	readFileSync,
 	statSync,
 	writeFileSync
 } from 'fs';
-import { join, resolve } from 'path';
+import { join } from 'path';
 import { pipeline } from 'stream';
 import glob from 'tiny-glob';
 import { fileURLToPath } from 'url';
@@ -25,8 +23,7 @@ export default function ({
 	entryPoint = '.svelte-kit/node/index.js',
 	out = 'build',
 	precompress,
-	env: { path: path_env = 'SOCKET_PATH', host: host_env = 'HOST', port: port_env = 'PORT' } = {},
-	esbuild: esbuild_config
+	env: { path: path_env = 'SOCKET_PATH', host: host_env = 'HOST', port: port_env = 'PORT' } = {}
 } = {}) {
 	return {
 		name: '@sveltejs/adapter-node',
@@ -58,54 +55,7 @@ export default function ({
 				)}] || (!path && 3000);`
 			);
 
-			/** @type {BuildOptions} */
-			const defaultOptions = {
-				entryPoints: ['.svelte-kit/node/middlewares.js'],
-				outfile: join(out, 'middlewares.js'),
-				bundle: true,
-				external: Object.keys(JSON.parse(readFileSync('package.json', 'utf8')).dependencies || {}),
-				format: 'esm',
-				platform: 'node',
-				target: 'node14',
-				inject: [join(files, 'shims.js')],
-				define: {
-					APP_DIR: `"/${config.kit.appDir}/"`
-				}
-			};
-			const build_options = esbuild_config ? await esbuild_config(defaultOptions) : defaultOptions;
-			await esbuild.build(build_options);
-
-			utils.log.minor('Building SvelteKit server');
-			/** @type {BuildOptions} */
-			const default_options_ref_server = {
-				entryPoints: [entryPoint],
-				outfile: join(out, 'index.js'),
-				bundle: true,
-				format: 'esm',
-				platform: 'node',
-				target: 'node14',
-				// external exclude workaround, see https://github.com/evanw/esbuild/issues/514
-				plugins: [
-					{
-						name: 'fix-middlewares-exclude',
-						setup(build) {
-							// Match an import of "middlewares.js" and mark it as external
-							const internal_middlewares_path = resolve('.svelte-kit/node/middlewares.js');
-							const build_middlewares_path = resolve(out, 'middlewares.js');
-							build.onResolve({ filter: /\/middlewares\.js$/ }, ({ path, resolveDir }) => {
-								const resolved = resolve(resolveDir, path);
-								if (resolved === internal_middlewares_path || resolved === build_middlewares_path) {
-									return { path: './middlewares.js', external: true };
-								}
-							});
-						}
-					}
-				]
-			};
-			const build_options_ref_server = esbuild_config
-				? await esbuild_config(default_options_ref_server)
-				: default_options_ref_server;
-			await esbuild.build(build_options_ref_server);
+			utils.copy('.svelte-kit/output/server/app.js', 'build/index.js');
 
 			utils.log.minor('Prerendering static pages');
 			await utils.prerender({

@@ -1,13 +1,12 @@
-import fs from 'fs';
-import path from 'path';
-
 import { svelte } from '@sveltejs/vite-plugin-svelte';
+import fs from 'fs';
+import { createRequire } from 'module';
+import path from 'path';
 import glob from 'tiny-glob/sync.js';
 import vite from 'vite';
 
 import { rimraf } from '../../utils/filesystem.js';
 import { deep_merge } from '../../utils/object.js';
-
 import { print_config_conflicts } from '../config/index.js';
 import { create_app } from '../create_app/index.js';
 import create_manifest_data from '../create_manifest_data/index.js';
@@ -17,11 +16,13 @@ import { copy_assets, posixify, resolve_entry } from '../utils.js';
 /** @param {any} value */
 const s = (value) => JSON.stringify(value);
 
-/** @typedef {Record<string, {
+/**
+ * @typedef {Record<string, {
  *   file: string;
  *   css: string[];
  *   imports: string[];
- * }>} ClientManifest */
+ * }>} ClientManifest
+ */
 
 /**
  * @param {import('types/config').ValidatedConfig} config
@@ -32,7 +33,8 @@ const s = (value) => JSON.stringify(value);
  * @returns {Promise<import('types/internal').BuildData>}
  */
 export async function build(config, { cwd = process.cwd(), runtime = '@sveltejs/kit/ssr' } = {}) {
-	const build_dir = path.resolve(cwd, `${SVELTE_KIT}/build`);
+	const raw_build_dir = `${SVELTE_KIT}/build`;
+	const build_dir = path.resolve(cwd, raw_build_dir);
 
 	rimraf(build_dir);
 
@@ -53,7 +55,7 @@ export async function build(config, { cwd = process.cwd(), runtime = '@sveltejs/
 			cwd
 		}),
 		output_dir,
-		client_entry_file: `${SVELTE_KIT}/build/runtime/internal/start.js`,
+		client_entry_file: `${raw_build_dir}/runtime/internal/start.js`,
 		service_worker_entry_file: resolve_entry(config.kit.files.serviceWorker)
 	};
 
@@ -225,11 +227,9 @@ async function build_server(
 ) {
 	let hooks_file = resolve_entry(config.kit.files.hooks);
 	if (!hooks_file || !fs.existsSync(hooks_file)) {
-		hooks_file = path.resolve(cwd, `${SVELTE_KIT}/build/hooks.js`);
+		hooks_file = path.resolve(build_dir, 'hooks.js');
 		fs.writeFileSync(hooks_file, '');
 	}
-
-	const app_file = `${build_dir}/app.js`;
 
 	/** @type {(file: string) => string} */
 	const app_relative = (file) => {
@@ -292,6 +292,14 @@ async function build_server(
 	const entry_css = new Set();
 
 	find_deps(client_entry_file, entry_js, entry_css);
+
+	const adapter = config.kit.adapter.name;
+	const require = createRequire(import.meta.url);
+	const pkg_path = require.resolve(`${adapter}/package.json`);
+	const pkg = JSON.parse(fs.readFileSync(pkg_path, 'utf8'));
+	const main = path.resolve(pkg_path.substring(0, pkg_path.lastIndexOf('/')), pkg.adapter);
+
+	const app_file = `${build_dir}/app.js`;
 
 	// prettier-ignore
 	fs.writeFileSync(
@@ -468,7 +476,7 @@ async function build_server(
 			polyfillDynamicImport: false,
 			rollupOptions: {
 				input: {
-					app: app_file
+					app: main
 				},
 				output: {
 					format: 'esm',
@@ -490,6 +498,7 @@ async function build_server(
 		],
 		resolve: {
 			alias: {
+				'$server-build': path.resolve(`${build_dir}/app.js`),
 				$app: path.resolve(`${build_dir}/runtime/app`),
 				$lib: config.kit.files.lib
 			}

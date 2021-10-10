@@ -1,5 +1,6 @@
-// TODO hardcoding the relative location makes this brittle
-import { init, render } from '../output/server/app.js';
+// $server-build doesn't exist until the app is built
+// @ts-ignore
+import { init, render } from '$server-build';
 import { getAssetFromKV, NotFoundError } from '@cloudflare/kv-asset-handler';
 
 init();
