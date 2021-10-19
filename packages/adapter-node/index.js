@@ -1,10 +1,4 @@
-import {
-	createReadStream,
-	createWriteStream,
-	existsSync,
-	statSync,
-	writeFileSync
-} from 'fs';
+import { createReadStream, createWriteStream, existsSync, statSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { pipeline } from 'stream';
 import glob from 'tiny-glob';
