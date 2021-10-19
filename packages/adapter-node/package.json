@@ -21,7 +21,6 @@
 		"prepublishOnly": "npm run build"
 	},
 	"dependencies": {
-		"esbuild": "^0.13.4",
 		"tiny-glob": "^0.2.9"
 	},
 	"devDependencies": {

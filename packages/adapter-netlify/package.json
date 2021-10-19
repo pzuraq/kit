@@ -15,6 +15,7 @@
 		"./package.json": "./package.json"
 	},
 	"main": "index.js",
+	"adapter": "files/entry.js",
 	"types": "index.d.ts",
 	"files": [
 		"files",
@@ -26,8 +27,7 @@
 		"check-format": "prettier --check . --config ../../.prettierrc --ignore-path .gitignore"
 	},
 	"dependencies": {
-		"@iarna/toml": "^2.2.5",
-		"esbuild": "^0.13.4"
+		"@iarna/toml": "^2.2.5"
 	},
 	"devDependencies": {
 		"@sveltejs/kit": "workspace:*"

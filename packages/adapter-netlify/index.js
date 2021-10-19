@@ -1,15 +1,10 @@
 import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
-import esbuild from 'esbuild';
 import toml from '@iarna/toml';
 
-/**
- * @typedef {import('esbuild').BuildOptions} BuildOptions
- */
-
 /** @type {import('.')} */
-export default function (options) {
+export default function () {
 	return {
 		name: '@sveltejs/adapter-netlify',
 
@@ -24,24 +19,7 @@ export default function (options) {
 			const files = fileURLToPath(new URL('./files', import.meta.url));
 
 			utils.log.minor('Generating serverless function...');
-			utils.copy(join(files, 'entry.js'), '.svelte-kit/netlify/entry.js');
-
-			/** @type {BuildOptions} */
-			const default_options = {
-				entryPoints: ['.svelte-kit/netlify/entry.js'],
-				// Any functions in ".netlify/functions-internal" are bundled in addition to user-defined Netlify functions.
-				// See https://github.com/netlify/build/pull/3213 for more details
-				outfile: '.netlify/functions-internal/__render.js',
-				bundle: true,
-				inject: [join(files, 'shims.js')],
-				platform: 'node'
-			};
-
-			const build_options =
-				options && options.esbuild ? await options.esbuild(default_options) : default_options;
-
-			await esbuild.build(build_options);
-
+			utils.copy(files, '.netlify');
 			writeFileSync(join('.netlify', 'package.json'), JSON.stringify({ type: 'commonjs' }));
 
 			utils.log.minor('Prerendering static pages...');
