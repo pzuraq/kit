@@ -296,12 +296,6 @@ async function build_server(
 
 	find_deps(client_entry_file, entry_js, entry_css);
 
-	const adapter = config.kit.adapter.name;
-	const require = createRequire(import.meta.url);
-	const pkg_path = require.resolve(`${adapter}/package.json`);
-	const pkg = JSON.parse(fs.readFileSync(pkg_path, 'utf8'));
-	const main = path.resolve(pkg_path.substring(0, pkg_path.lastIndexOf('/')), pkg.adapter);
-
 	const app_file = `${build_dir}/app.js`;
 
 	// prettier-ignore
@@ -469,6 +463,25 @@ async function build_server(
 	// don't warn on overriding defaults
 	const [modified_vite_config] = deep_merge(default_config, vite_config);
 
+	const adapter = config.kit?.adapter?.name;
+	/**
+	 * @type {{ app:string, index?:string }}
+	 */
+	const input = {
+		app: app_file
+	};
+	if (adapter) {
+		const require = createRequire(import.meta.url);
+		let pkg_path;
+		try {
+			pkg_path = require.resolve(`${adapter}/package.json`);
+		} catch (err) {
+			throw new Error(`Could not resolve ${adapter}/package.json while building ${cwd}`);
+		}
+		const pkg = JSON.parse(fs.readFileSync(pkg_path, 'utf8'));
+		input.index = path.resolve(pkg_path.substring(0, pkg_path.lastIndexOf('/')), pkg.adapter);
+	}
+
 	/** @type {[any, string[]]} */
 	const [merged_config, conflicts] = deep_merge(modified_vite_config, {
 		configFile: false,
@@ -479,10 +492,7 @@ async function build_server(
 			outDir: `${output_dir}/server`,
 			polyfillDynamicImport: false,
 			rollupOptions: {
-				input: {
-					app: app_file,
-					index: main
-				},
+				input,
 				output: {
 					format: 'esm',
 					entryFileNames: '[name].js',
