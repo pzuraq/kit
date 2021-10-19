@@ -15,7 +15,7 @@ const pipe = promisify(pipeline);
 /** @type {import('.')} */
 export default function ({
 	// TODO: add ability to customize entry point to build/index.js
-  // entryPoint = '.svelte-kit/node/index.js',
+	// entryPoint = '.svelte-kit/node/index.js',
 	out = 'build',
 	precompress,
 	env: { path: path_env = 'SOCKET_PATH', host: host_env = 'HOST', port: port_env = 'PORT' } = {}
