@@ -49,12 +49,10 @@ importers:
   examples/hn.svelte.dev:
     specifiers:
       '@sveltejs/adapter-netlify': workspace:*
-      '@sveltejs/adapter-node': workspace:*
       '@sveltejs/kit': workspace:*
       svelte: ^3.44.0
     devDependencies:
       '@sveltejs/adapter-netlify': link:../../packages/adapter-netlify
-      '@sveltejs/adapter-node': link:../../packages/adapter-node
       '@sveltejs/kit': link:../../packages/kit
       svelte: 3.44.0
 
