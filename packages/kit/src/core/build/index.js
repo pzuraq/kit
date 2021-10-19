@@ -33,6 +33,9 @@ const s = (value) => JSON.stringify(value);
  * @returns {Promise<import('types/internal').BuildData>}
  */
 export async function build(config, { cwd = process.cwd(), runtime = '@sveltejs/kit/ssr' } = {}) {
+	// TODO: build and output are confusing names because they're synonyms
+	// rename build to intermediate or generated or something clearer
+
 	const raw_build_dir = `${SVELTE_KIT}/build`;
 	const build_dir = path.resolve(cwd, raw_build_dir);
 
@@ -455,6 +458,7 @@ async function build_server(
 		build: {
 			target: 'es2020'
 		},
+		// TODO: remove after https://github.com/vitejs/vite/pull/5341 is merged and released
 		server: {
 			fs: {
 				strict: true
