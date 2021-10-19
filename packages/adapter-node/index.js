@@ -49,7 +49,7 @@ export default function ({
 				)}] || (!path && 3000);`
 			);
 
-			utils.copy('.svelte-kit/output/server/app.js', 'build/index.js');
+			utils.copy('.svelte-kit/output/server/', 'build/');
 
 			utils.log.minor('Prerendering static pages');
 			await utils.prerender({

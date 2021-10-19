@@ -480,14 +480,14 @@ async function build_server(
 			polyfillDynamicImport: false,
 			rollupOptions: {
 				input: {
-					app: main
+					app: app_file,
+					index: main
 				},
 				output: {
 					format: 'esm',
 					entryFileNames: '[name].js',
 					chunkFileNames: 'chunks/[name]-[hash].js',
-					assetFileNames: 'assets/[name]-[hash][extname]',
-					inlineDynamicImports: true
+					assetFileNames: 'assets/[name]-[hash][extname]'
 				},
 				preserveEntrySignatures: 'strict'
 			}
@@ -500,6 +500,9 @@ async function build_server(
 				}
 			})
 		],
+		define: {
+			APP_DIR: `"/${config.kit.appDir}/"`
+		},
 		resolve: {
 			alias: {
 				'$server-build': path.resolve(`${build_dir}/app.js`),
