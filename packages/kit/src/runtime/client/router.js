@@ -253,6 +253,8 @@ export class Router {
 			throw new Error('Attempted to navigate to a URL that does not belong to this app');
 		}
 
+		dispatchEvent(new CustomEvent('sveltekit:navigation-start'));
+
 		// remove trailing slashes
 		if (info.path !== '/') {
 			const has_trailing_slash = info.path.endsWith('/');
@@ -269,11 +271,8 @@ export class Router {
 			}
 		}
 
-		this.renderer.notify({
-			path: info.path,
-			query: info.query
-		});
+		await this.renderer.handle_navigation(info, chain, false, { hash, scroll, keepfocus });
 
-		await this.renderer.update(info, chain, false, { hash, scroll, keepfocus });
+		dispatchEvent(new CustomEvent('sveltekit:navigation-end'));
 	}
 }
