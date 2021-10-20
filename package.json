@@ -1,46 +1,35 @@
 {
-	"name": "kit",
-	"version": "0.0.1",
-	"description": "monorepo for @sveltejs/kit and friends",
-	"private": true,
-	"scripts": {
-		"build": "pnpm build --filter=\"@sveltejs/*\" --filter=\"create-svelte\"",
-		"test": "pnpm -r test --workspace-concurrency=1",
-		"check": "pnpm -r check",
-		"lint": "pnpm -r lint",
-		"format": "pnpm -r format",
-		"release": "pnpm publish --tag=next --filter=\"@sveltejs/*\" --filter=\"create-svelte\"",
-		"preview:docs": "action-deploy-docs --project=kit",
-		"changeset:version": "changeset version && pnpm i --lockfile-only"
-	},
+	"name": "@sveltejs/adapter-cloudflare-workers",
+	"version": "1.0.0-next.24",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/sveltejs/kit.git"
+		"url": "https://github.com/sveltejs/kit",
+		"directory": "packages/adapter-cloudflare-workers"
 	},
-	"author": "",
-	"license": "MIT",
-	"bugs": {
-		"url": "https://github.com/sveltejs/kit/issues"
+	"homepage": "https://kit.svelte.dev",
+	"type": "module",
+	"exports": {
+		".": {
+			"import": "./index.js"
+		},
+		"./package.json": "./package.json"
 	},
-	"homepage": "https://github.com/sveltejs/kit#readme",
+	"main": "index.js",
+	"types": "index.d.ts",
+	"files": [
+		"files",
+		"index.d.ts"
+	],
+	"scripts": {
+		"lint": "eslint --ignore-path .gitignore \"**/*.{ts,js,svelte}\" && npm run check-format",
+		"format": "npm run check-format -- --write",
+		"check-format": "prettier --check . --config ../../.prettierrc --ignore-path .gitignore"
+	},
+	"dependencies": {
+		"@iarna/toml": "^2.2.5",
+		"esbuild": "^0.13.4"
+	},
 	"devDependencies": {
-		"@changesets/cli": "^2.17.0",
-		"@changesets/get-github-info": "^0.5.0",
-		"@rollup/plugin-commonjs": "^21.0.0",
-		"@rollup/plugin-json": "^4.1.0",
-		"@rollup/plugin-node-resolve": "^13.0.5",
-		"@sveltejs/eslint-config": "github:sveltejs/eslint-config#v5.8.0",
-		"@typescript-eslint/eslint-plugin": "^4.33.0",
-		"@typescript-eslint/parser": "^4.33.0",
-		"action-deploy-docs": "github:sveltejs/action-deploy-docs#main",
-		"dotenv": "^10.0.0",
-		"eslint": "^7.32.0",
-		"eslint-plugin-import": "^2.24.2",
-		"eslint-plugin-svelte3": "^3.2.1",
-		"playwright-chromium": "^1.15.2",
-		"prettier": "^2.4.1",
-		"rollup": "^2.58.0",
-		"typescript": "^4.4.3"
-	},
-	"type": "module"
+		"@sveltejs/kit": "workspace:*"
+	}
 }
