@@ -51,18 +51,13 @@ export default function (options) {
 				})};\n\nexport const prerendered = new Set(${JSON.stringify(paths)});\n`
 			);
 
-			const default_options = {
+			await esbuild.build({
 				entryPoints: [`${tmp}/entry.js`],
 				outfile: `${entrypoint}/index.js`,
 				bundle: true,
-				target: 'es2020',
+				target: 'es2019',
 				platform: 'browser'
-			};
-
-			const build_options =
-				options && options.esbuild ? await options.esbuild(default_options) : default_options;
-
-			await esbuild.build(build_options);
+			});
 
 			writeFileSync(`${entrypoint}/package.json`, JSON.stringify({ main: 'index.js' }));
 
