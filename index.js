@@ -52,11 +52,12 @@ export default function (options) {
 			);
 
 			await esbuild.build({
+				target: 'es2019',
+				platform: 'browser',
+				...options,
 				entryPoints: [`${tmp}/entry.js`],
 				outfile: `${entrypoint}/index.js`,
 				bundle: true,
-				target: 'es2019',
-				platform: 'browser'
 			});
 
 			writeFileSync(`${entrypoint}/package.json`, JSON.stringify({ main: 'index.js' }));
