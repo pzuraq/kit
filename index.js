@@ -13,19 +13,17 @@ export default function (options) {
 		async adapt(builder) {
 			const { site } = validate_config(builder);
 
-			const bucket = site.bucket;
+			// @ts-ignore
+			const { bucket } = site;
+
+			// @ts-ignore
 			const entrypoint = site['entry-point'] || 'workers-site';
 
-			const files = fileURLToPath(new URL('./files', import.meta.url));
+			const files = fileURLToPath(new URL('./files', import.meta.url).href);
 			const tmp = builder.getBuildDirectory('cloudflare-workers-tmp');
 
 			builder.rimraf(bucket);
 			builder.rimraf(entrypoint);
-
-			builder.log.info('Prerendering static pages...');
-			const { paths } = await builder.prerender({
-				dest: bucket
-			});
 
 			builder.log.info('Installing worker dependencies...');
 			builder.copy(`${files}/_package.json`, `${tmp}/package.json`);
@@ -39,7 +37,7 @@ export default function (options) {
 
 			builder.copy(`${files}/entry.js`, `${tmp}/entry.js`, {
 				replace: {
-					APP: `${relativePath}/app.js`,
+					SERVER: `${relativePath}/index.js`,
 					MANIFEST: './manifest.js'
 				}
 			});
@@ -48,16 +46,16 @@ export default function (options) {
 				`${tmp}/manifest.js`,
 				`export const manifest = ${builder.generateManifest({
 					relativePath
-				})};\n\nexport const prerendered = new Set(${JSON.stringify(paths)});\n`
+				})};\n\nexport const prerendered = new Set(${JSON.stringify(builder.prerendered.paths)});\n`
 			);
 
 			await esbuild.build({
-				target: 'es2019',
-				platform: 'browser',
-				...options,
 				entryPoints: [`${tmp}/entry.js`],
 				outfile: `${entrypoint}/index.js`,
 				bundle: true,
+				...options,
+				target: 'es2020',
+				platform: 'browser'
 			});
 
 			writeFileSync(`${entrypoint}/package.json`, JSON.stringify({ main: 'index.js' }));
@@ -65,6 +63,7 @@ export default function (options) {
 			builder.log.minor('Copying assets...');
 			builder.writeClient(bucket);
 			builder.writeStatic(bucket);
+			builder.writePrerendered(bucket);
 		}
 	};
 }
@@ -81,6 +80,7 @@ function validate_config(builder) {
 			throw err;
 		}
 
+		// @ts-ignore
 		if (!wrangler_config.site || !wrangler_config.site.bucket) {
 			throw new Error(
 				'You must specify site.bucket in wrangler.toml. Consult https://developers.cloudflare.com/workers/platform/sites/configuration'
