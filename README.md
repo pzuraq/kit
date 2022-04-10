@@ -1,63 +1,105 @@
-[![Chat](https://img.shields.io/discord/457912077277855764?label=chat&logo=discord)](https://svelte.dev/chat)
+# adapter-cloudflare-workers
 
-# READ THIS FIRST!
+SvelteKit adapter that creates a Cloudflare Workers site using a function for dynamic server rendering.
 
-SvelteKit is still in beta. Expect bugs! Read more [here](https://svelte.dev/blog/sveltekit-beta), and track progress towards 1.0 [here](https://github.com/sveltejs/kit/issues?q=is%3Aopen+is%3Aissue+milestone%3A1.0).
+_**Comparisons**_
 
-## Overview
+- `adapter-cloudflare` – supports all SvelteKit features; builds for
+  [Cloudflare Pages](https://blog.cloudflare.com/cloudflare-pages-goes-full-stack/)
+- `adapter-cloudflare-workers` – supports all SvelteKit features; builds for
+  Cloudflare Workers
+- `adapter-static` – only produces client-side static assets; compatible with
+  Cloudflare Pages
 
-The Fastest Way to Build Svelte Apps
+> **Note:** Cloudflare Pages' new Workers integration is currently in beta.<br/>
+> Compared to `adapter-cloudflare-workers`, `adapter-cloudflare` is the preferred approach for most users since building on top of Pages unlocks automatic builds and deploys, preview deployments, instant rollbacks, etc.<br/>
+> From SvelteKit's perspective, there is no difference and no functionality loss when migrating to/from the Workers and the Pages adapters.
 
-- 💨 Blazing-Fast Production Sites
-- 🛠️ SSR, SPA, SSG, and In-Between
-- ⚡️ Instantly Visible Code Changes
-- 🔩 Existing Universe of Plugins
-- 🔑 Fully Typed APIs
+## Usage
 
-## Documentation
+Install with `npm i -D @sveltejs/adapter-cloudflare-workers@next`, then add the adapter to your `svelte.config.js`:
 
-Please see [the documentation](https://kit.svelte.dev/docs) for information about getting started and developing with SvelteKit.
+```js
+import adapter from '@sveltejs/adapter-cloudflare-workers';
 
-### Packages
+export default {
+	kit: {
+		adapter: adapter()
+	}
+};
+```
 
-| Package                                                                     | Changelog                                                     |
-| --------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| [@sveltejs/kit](packages/kit)                                               | [Changelog](packages/kit/CHANGELOG.md)                        |
-| [create-svelte](packages/create-svelte)                                     | [Changelog](packages/create-svelte/CHANGELOG.md)              |
-| [@sveltejs/adapter-node](packages/adapter-node)                             | [Changelog](packages/adapter-node/CHANGELOG.md)               |
-| [@sveltejs/adapter-static](packages/adapter-static)                         | [Changelog](packages/adapter-static/CHANGELOG.md)             |
-| [@sveltejs/adapter-cloudflare-workers](packages/adapter-cloudflare-workers) | [Changelog](packages/adapter-cloudflare-workers/CHANGELOG.md) |
-| [@sveltejs/adapter-cloudflare](packages/adapter-cloudflare)                 | [Changelog](packages/adapter-cloudflare/CHANGELOG.md)         |
-| [@sveltejs/adapter-netlify](packages/adapter-netlify)                       | [Changelog](packages/adapter-netlify/CHANGELOG.md)            |
-| [@sveltejs/adapter-vercel](packages/adapter-vercel)                         | [Changelog](packages/adapter-vercel/CHANGELOG.md)             |
+## Basic Configuration
 
-The SvelteKit community also makes additional [SvelteKit adapters available for use](https://sveltesociety.dev/components#adapters).
+**You will need [Wrangler](https://developers.cloudflare.com/workers/cli-wrangler/install-update) installed on your system**
 
-### Migrating from Sapper
+This adapter expects to find a [wrangler.toml](https://developers.cloudflare.com/workers/platform/sites/configuration) file in the project root. It will determine where to write static assets and the worker based on the `site.bucket` and `build.upload` settings. These values must be set to the following:
 
-Check out the [Migration Guide](https://kit.svelte.dev/docs/migrating) if you are upgrading from Sapper.
+```toml
+[build.upload]
+format = "modules"
+dir = "./.svelte-kit/cloudflare"
+main = "./_worker.mjs"
 
-## Bug reporting
+[site]
+bucket = "./.svelte-kit/cloudflare-bucket"
+```
 
-Please make sure the issue you're reporting involves SvelteKit. Many issues related to how a project builds originate from [Vite](https://vitejs.dev/), which is used to build a SvelteKit project. It's important to note that new Vite projects don't use SSR by default, and so if you create a new Vite project from scratch, many issues won't reproduce. You should thus start with a project that utilizes SSR, such as:
+To get started, generate this file using `wrangler` from your project directory
 
-- https://github.com/GrygrFlzr/vite-ssr-d3
-- https://github.com/sveltejs/vite-plugin-svelte/tree/main/packages/e2e-tests/vite-ssr
+```sh
+wrangler init --site my-site-name
+```
 
-If an issue originates from Vite, please report in the [Vite issue tracker](https://github.com/vitejs/vite/issues).
+Now you should get some details from Cloudflare. You should get your:
 
-## Changing SvelteKit locally
+1. Account ID
+2. And your Zone-ID (Optional)
 
-See the [Contributing Guide](./CONTRIBUTING.md).
+Get them by visiting your [Cloudflare dashboard](https://dash.cloudflare.com) and click on any domain. There, you can scroll down and on the left, you can see your details under **API**.
 
-## Supporting Svelte
+Then configure your account-details in the config file:
 
-Svelte is an MIT-licensed open source project with its ongoing development made possible entirely by fantastic volunteers. If you'd like to support their efforts, please consider:
+```toml
+name = "<your-site-name>"
+type = "javascript"
+account_id = "<your-account-id>"
+workers_dev = true
+route = ""
+zone_id = ""
 
-- [Becoming a backer on Open Collective](https://opencollective.com/svelte).
+compatibility_date = "2022-02-09"
 
-Funds donated via Open Collective will be used for compensating expenses related to Svelte's development such as hosting costs. If sufficient donations are received, funds may also be used to support Svelte's development more directly.
+[build]
+# Assume it's already been built. You can make this "npm run build" to ensure a build before publishing
+command = ""
 
-## License
+# All values below here are required by adapter-cloudflare-workers and should not change
+[build.upload]
+format = "modules"
+dir = "./.svelte-kit/cloudflare"
+main = "./_worker.mjs"
 
-[MIT](https://github.com/sveltejs/kit/blob/master/LICENSE)
+[site]
+bucket = "./.svelte-kit/cloudflare-bucket"
+```
+
+Now, log in with wrangler:
+
+```sh
+wrangler login
+```
+
+Build your project and publish it:
+
+```sh
+npm run build && wrangler publish
+```
+
+**You are done!**
+
+More info on configuring a cloudflare worker site can be found [here](https://developers.cloudflare.com/workers/platform/sites/start-from-existing)
+
+## Changelog
+
+[The Changelog for this package is available on GitHub](https://github.com/sveltejs/kit/blob/master/packages/adapter-cloudflare-workers/CHANGELOG.md).
